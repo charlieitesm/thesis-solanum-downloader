@@ -1,0 +1,2 @@
+class NotAbleToDownloadException(Exception):
+    pass
