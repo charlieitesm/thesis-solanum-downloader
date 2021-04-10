@@ -2,8 +2,8 @@ import logging
 import os
 from argparse import Namespace
 
-import requests
 import pandas as pd
+import requests
 
 from downloaders import utils
 from exceptions.solanum_exceptions import NotAbleToDownloadException
@@ -68,7 +68,7 @@ class Downloader:
                 image_folder = os.path.join(folder, image.section)
                 utils.prepare_download_folder(image_folder)
 
-                with requests.get(image.url) as response:
+                with requests.get(image.url, timeout=15) as response:
                     if response.ok:
 
                         full_filename = os.path.join(image_folder, image.filename)
@@ -79,17 +79,22 @@ class Downloader:
                             for chunk in response.iter_content(4096):
                                 fo.write(chunk)
 
+                        LOGGER.info('Saved!')
+
                     else:
-                        self.failed_images.append(row)
-                        LOGGER.error("Failed to download, we got an HTTP %i error for %s" % (response.status_code,
-                                                                                             image.url))
+                        raise NotAbleToDownloadException("Failed to download, we got an HTTP %i error for %s"
+                                                         % (response.status_code, image.location_url))
 
             except requests.exceptions.ConnectionError as ex:
-                LOGGER.error(ex)
+                LOGGER.error("Unexpected connection error!", ex)
+                self.failed_images.append(row)
                 continue
-            except Exception as exception:
-                LOGGER.error("Failed to download %s!" % image.url)
-                LOGGER.error(ex)
+            except NotAbleToDownloadException as ex:
+                LOGGER.error(f"We determined we couldn't download {image.location_url}!", ex)
+                self.failed_images.append(row)
+                continue
+            except Exception as ex:
+                LOGGER.error(f"Something happened while attempting to download {image.location_url}!", ex)
                 self.failed_images.append(row)
                 continue
 
@@ -131,10 +136,12 @@ class Image:
             # Check first if the URL is without extension but is still pointing to the bytes of an image, we'll use
             #  the Content-Type in a HEAD HTTP request to retrieve this information
             is_url_pointing_to_image_bytes, image_extension = utils.is_url_pointing_to_image_bytes(self.location_url)
-            self._url = self.location_url
 
-            # As a last resort, let's try to parse the DOM to see if we can find the image
-            if not is_url_pointing_to_image_bytes:
+            if is_url_pointing_to_image_bytes:
+                self._url = self.location_url
+
+            else:
+                # As a last resort, let's try to parse the DOM to see if we can find the image
                 LOGGER.debug(f"{self.location_url} doesn't point to an image, attempting to extract it from the DOM!")
                 self._url = utils.extract_image_url_from_dom(self.location_url,
                                                              "img[src]")

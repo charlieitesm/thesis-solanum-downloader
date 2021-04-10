@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from exceptions.solanum_exceptions import NotAbleToDownloadException
 
 LOGGER = logging.getLogger(__name__)
+TIMEOUT_SEG = 7
 
 
 def tidy_up_url(url: str) -> str:
@@ -35,7 +36,7 @@ def url_contains_extension(url: str) -> bool:
 
 def extract_image_url_from_dom(image_location_url: str, dom_selector) -> str:
 
-    html_source = requests.get(image_location_url).text
+    html_source = requests.get(image_location_url, timeout=TIMEOUT_SEG).text
 
     soup = BeautifulSoup(html_source, "lxml")
 
@@ -62,5 +63,19 @@ def image_already_exists(folder: str, image) -> bool:
     return len(glob.glob(pattern_to_search)) > 0
 
 
-def is_url_pointing_to_image_bytes(location_url: str) -> bool:
-    return None
+def is_url_pointing_to_image_bytes(location_url: str) -> tuple:
+    response = requests.head(location_url,
+                             allow_redirects=True,
+                             timeout=TIMEOUT_SEG)
+
+    if not response.ok:
+        raise NotAbleToDownloadException(f"{location_url} returned a {response.status_code} HTTP Code!")
+
+    # Let's determine the MIME type of the link, more info:
+    #  https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+    mime_type, mime_subtype = response.headers["Content-Type"].split("/")
+
+    if mime_type.lower() == "image":
+        return True, mime_subtype
+    else:
+        return False, None
