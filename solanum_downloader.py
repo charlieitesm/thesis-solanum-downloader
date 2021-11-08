@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from argparse import ArgumentParser
 import logging
 import sys
+from argparse import ArgumentParser
 
 from downloaders.downloader import Downloader
 
@@ -21,16 +21,15 @@ def main():
 
 def configure_logging(is_debug=False):
     log_format = "%(asctime)s [%(name)s] [%(levelname)s] %(message)s"
-    logging.basicConfig(format=log_format,
-                        filename='solanum_downloader.log',
-                        level=logging.DEBUG if is_debug else logging.INFO)
+
+    file_handler = logging.FileHandler('solanum_downloader.log')
 
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(logging.Formatter(log_format))
-    console_handler.setLevel(logging.DEBUG)
+    err_handler = logging.StreamHandler(sys.stderr)
 
-    root_logger = logging.getLogger()
-    root_logger.addHandler(console_handler)
+    logging.basicConfig(format=log_format,
+                        level=logging.DEBUG if is_debug else logging.INFO,
+                        handlers=[console_handler, file_handler, err_handler])
 
     LOGGER.info("******* Solanum Downloader *******")
     LOGGER.debug("Ready to DEBUG!")

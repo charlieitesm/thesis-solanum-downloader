@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from argparse import Namespace
 
 import pandas as pd
@@ -87,20 +88,22 @@ class Downloader:
 
             except requests.exceptions.ConnectionError as ex:
                 LOGGER.error("Unexpected connection error!", ex)
-                self.failed_images.append(row)
+                self.failed_images = self.failed_images.append(row)
                 continue
             except NotAbleToDownloadException as ex:
                 LOGGER.error(f"We determined we couldn't download {image.location_url}!", ex)
-                self.failed_images.append(row)
+                self.failed_images = self.failed_images.append(row)
                 continue
             except Exception as ex:
                 LOGGER.error(f"Something happened while attempting to download {image.location_url}!", ex)
-                self.failed_images.append(row)
+                self.failed_images = self.failed_images.append(row)
                 continue
 
         if not self.failed_images.empty:
             LOGGER.info(f"Saving report of failed images to {folder}...")
             self.failed_images.to_csv(f"{folder}/failed_images.csv")
+        else:
+            LOGGER.info("There are no failed images to report!")
 
 
 class Image:
@@ -131,6 +134,7 @@ class Image:
         if utils.url_contains_extension(self.location_url):
             self._url = self.location_url
             image_extension = self._url[self._url.rfind(".") + 1:]
+            image_extension = image_extension[image_extension[:image_extension.find(re.findall("[^0-9a-zA-Z]", image_extension)[-1])]]
 
         else:
             # Check first if the URL is without extension but is still pointing to the bytes of an image, we'll use

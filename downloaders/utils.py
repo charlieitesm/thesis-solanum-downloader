@@ -54,9 +54,9 @@ def image_already_exists(folder: str, image) -> bool:
 
     # The filename pattern is as follows:
     # "%s_%s_%s_%s_%s" % (self.section, self.species, self.sample_id, self.source, self.row_idx)
-    filename_pattern = "*%s*%s*"
+    filename_pattern = "*%s*%s*%s*"
 
-    pattern_to_search = filename_pattern % (image.sample_id, image.source)
+    pattern_to_search = filename_pattern % (image.sample_id, image.source, image.row_idx)
     pattern_to_search = os.path.join(folder, image.section, pattern_to_search)
     LOGGER.debug("Pattern to search: %s" % pattern_to_search)
 
