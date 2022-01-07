@@ -1,0 +1,2 @@
+#!/bin/bash
+jupyter notebook --port=8888 --ip=0.0.0.0 --allow-root --no-browser --NotebookApp.allow_origin='https://colab.research.google.com' --NotebookApp.port_retries=0
