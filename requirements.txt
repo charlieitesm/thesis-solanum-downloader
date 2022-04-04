@@ -14,5 +14,5 @@ jupyterlab-widgets==1.0.2
 matplotlib==3.5.1
 numpy==1.21.0
 pandas==1.2.3
-Pillow==9.0.0
+Pillow==9.0.1
 requests==2.25.1
