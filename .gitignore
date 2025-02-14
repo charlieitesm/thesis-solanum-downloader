@@ -104,3 +104,6 @@ ENV/
 *.gifv
 *.mp4
 *.zip
+
+# Big files
+solanum_output/*
