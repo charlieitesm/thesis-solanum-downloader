@@ -95,15 +95,5 @@ ENV/
 /pymage_downloader.iml
 /src/praw.ini
 
-#Image formats
-*.jpg
-*.gif
-*.jpeg
-*.png
-*.webm
-*.gifv
-*.mp4
-*.zip
-
 # Big files
 solanum_output/*
